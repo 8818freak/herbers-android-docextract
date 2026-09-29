@@ -265,12 +265,22 @@ public final class MobiExtractor {
             f.seek(mobiStart + 4);
             long headerLength = f.readInt() & 0xFFFFFFFFL;
 
+            // "First Image Index" (MOBI-Kopf Byte 108) ist in vielen Dateien 0
+            // bzw. unzuverlaessig (an echten Dateien bestaetigt: Feld=0, obwohl
+            // Bilder vorhanden). Robuster: den ERSTEN Record finden, der wirklich
+            // ein Bild ist (Magic-Bytes) - die EXTH-Offsets (201/202) beziehen
+            // sich darauf.
             long firstImageIndex = -1;
-            if (mobiStart + 112 <= len) {
-                f.seek(mobiStart + 108);
-                firstImageIndex = f.readInt() & 0xFFFFFFFFL;
+            byte[] head = new byte[8];
+            for (int i = 0; i < numRecords; i++) {
+                int s0 = offsets[i], e0 = offsets[i + 1];
+                if (s0 < 0 || e0 - s0 < 4 || e0 > len) continue;
+                int n0 = Math.min(8, e0 - s0);
+                f.seek(s0);
+                f.readFully(head, 0, n0);
+                if (looksLikeImage(head)) { firstImageIndex = i; break; }
             }
-            if (firstImageIndex < 0 || firstImageIndex >= numRecords) return null;
+            if (firstImageIndex < 0) return null; // kein Bild-Record vorhanden
 
             Long coverOff = null, thumbOff = null;
             if (mobiStart + 132 <= len) {
@@ -308,20 +318,36 @@ public final class MobiExtractor {
             Long chosen = coverOff != null ? coverOff : thumbOff;
             long imgRecord = chosen != null ? firstImageIndex + chosen : firstImageIndex;
             if (imgRecord < 0 || imgRecord >= numRecords) imgRecord = firstImageIndex;
-            int start = offsets[(int) imgRecord];
-            int end = offsets[(int) imgRecord + 1];
+            byte[] raw = readRecord(f, offsets, (int) imgRecord, len);
+            if (looksLikeImage(raw)) return raw;
+            // Offset-Rechnung daneben? Dann den ersten Bild-Record selbst nehmen.
+            if (imgRecord != firstImageIndex) {
+                byte[] raw2 = readRecord(f, offsets, (int) firstImageIndex, len);
+                if (looksLikeImage(raw2)) return raw2;
+            }
+            return null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    /** Bytes eines PalmDB-Records (idx) anhand der Offset-Tabelle lesen. */
+    private static byte[] readRecord(RandomAccessFile f, int[] offsets, int idx, long len) {
+        try {
+            if (idx < 0 || idx + 1 >= offsets.length) return null;
+            int start = offsets[idx], end = offsets[idx + 1];
             if (start < 0 || end <= start || end > len) return null;
             byte[] raw = new byte[end - start];
             f.seek(start);
             f.readFully(raw);
-            return looksLikeImage(raw) ? raw : null;
+            return raw;
         } catch (Throwable t) {
             return null;
         }
     }
 
     private static boolean looksLikeImage(byte[] b) {
-        if (b.length < 4) return false;
+        if (b == null || b.length < 4) return false;
         if ((b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8) return true; // JPEG
         if ((b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') return true; // PNG
         return b[0] == 'G' && b[1] == 'I' && b[2] == 'F'; // GIF
