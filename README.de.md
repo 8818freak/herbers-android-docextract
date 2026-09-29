@@ -58,13 +58,16 @@ Voraussetzungen: getestet auf Android 10+ (API 29). Java-8-Sprachfeatures
 
 ## Drittanbieter-Bibliotheken (in `libs/`)
 
-Unter jeweils eigener Open-Source-Lizenz, mit (L)GPLv3 kombinierbar:
+Diese Bibliothek liefert einige Drittanbieter-JARs mit, jeweils unter eigener
+Open-Source-Lizenz, alle mit (L)GPLv3 kombinierbar:
 
 - Apache POI, poi-scratchpad, Apache Commons (Collections, Compress, IO, Math),
-  Apache Log4j API, SparseBitSet, **PDFBox-Android** – alle **Apache License 2.0**
-- curvesapi – **BSD**
+  Apache Log4j API, SparseBitSet, **PdfBox-Android** – alle **Apache License 2.0**
+- curvesapi – **BSD-3-Clause**
 
-Die vollständigen Lizenztexte liegen den jeweiligen JARs bei.
+Versionen, Links und die geforderten Hinweise stehen in
+**[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**; die vollständigen
+Lizenztexte liegen zudem in der `META-INF/` jedes JARs.
 
 ## Lizenz
 

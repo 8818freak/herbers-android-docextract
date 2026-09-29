@@ -58,13 +58,16 @@ Requirements: tested on Android 10+ (API 29). Java 8 language features
 
 ## Third-party libraries (in `libs/`)
 
-Each under its own OSS license, all compatible with (L)GPLv3:
+This library bundles a few third-party JARs, each under its own OSS license,
+all compatible with (L)GPLv3:
 
 - Apache POI, poi-scratchpad, Apache Commons (Collections, Compress, IO, Math),
-  Apache Log4j API, SparseBitSet, **PDFBox-Android** – all **Apache License 2.0**
-- curvesapi – **BSD**
+  Apache Log4j API, SparseBitSet, **PdfBox-Android** – all **Apache License 2.0**
+- curvesapi – **BSD-3-Clause**
 
-Full license texts ship with the respective JARs.
+Versions, links and the required notices are in
+**[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**; the full license texts also
+ship inside each JAR's `META-INF/`.
 
 ## License
 
