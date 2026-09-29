@@ -1,74 +1,74 @@
 # herbers-android-docextract
 
-Textextraktion, Metadaten und Titelbilder aus Dokument- und E-Book-Dateien für
-Android – ohne Cloud, ohne Netzwerk, alles auf dem Gerät. Herausgelöst aus der
-App **[Sucher](https://github.com/8818freak/Sucher)**.
+*(English · [Deutsch](README.de.md))*
+
+Text, metadata and cover-image extraction from document and e-book files for
+Android – **no cloud, no network, entirely on-device**. Factored out of the
+app **[Sucher](https://github.com/8818freak/Sucher)**.
 
 > Reads file **names AND contents** – text, metadata (title/author/series) and
 > cover images – from a range of document and e-book formats, fully offline.
 
-## Was drin ist
+## What's inside
 
-| Klasse | Zweck |
+| Class | Purpose |
 |---|---|
-| `FileExtractors` | Einstiegspunkt: Text + Metadaten (Titel/Autor/Serie) aus TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, PDF, CBZ (ComicInfo.xml). Liefert `FileExtractors.Result`. |
-| `MobiExtractor` | MOBI/AZW/AZW3/PRC: Text, Metadaten, Cover, HTML-Vorschau (PalmDOC/MOBI6-Dekompression, KF8-Erkennung). |
-| `ComicExtractor` | CBZ: Seitennamen, Seiten-Bytes, Cover, ComicInfo.xml. |
-| `PdfExtractorHelper` | PDF (PDFBox-Android): Text, Seitenzahl, Seite rendern, Cover-Bitmap. Vor Gebrauch `init(context)` aufrufen. |
-| `LegacyOfficeExtractor` | Altes Office (.doc/.xls/.ppt) via Apache POI (poi-scratchpad). |
-| `Thumbnails` | Titel-/Vorschaubilder aus EPUB/MOBI/CBZ/PDF/OOXML-Cover und Bilddateien; Ablageort per `setStorageDir(File)` wählbar. |
+| `FileExtractors` | Entry point: text + metadata (title/author/series) from TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, PDF, CBZ (ComicInfo.xml). Returns `FileExtractors.Result`. |
+| `MobiExtractor` | MOBI/AZW/AZW3/PRC: text, metadata, cover, HTML preview (PalmDOC/MOBI6 decompression, KF8 detection). |
+| `ComicExtractor` | CBZ: page names, page bytes, cover, ComicInfo.xml. |
+| `PdfExtractorHelper` | PDF (PDFBox-Android): text, page count, render page, cover bitmap. Call `init(context)` before use. |
+| `LegacyOfficeExtractor` | Legacy Office (.doc/.xls/.ppt) via Apache POI (poi-scratchpad). |
+| `Thumbnails` | Cover/thumbnail images from EPUB/MOBI/CBZ/PDF/OOXML covers and image files; storage location via `setStorageDir(File)`. |
 
-## Nutzung (Beispiel)
+## Usage
 
 ```java
-// Text + Metadaten
-String ext = "epub"; // aus dem Dateinamen
+// Text + metadata
+String ext = "epub"; // from the file name
 FileExtractors.Result r = FileExtractors.extract(file, ext, /* wantContent= */ true);
-String body   = r.text;        // Volltext (falls wantContent)
-String title  = r.title;       // aus Dokument-/Buch-Metadaten
+String body   = r.text;   // full text (if wantContent)
+String title  = r.title;  // from document/book metadata
 String author = r.author;
-boolean drm   = r.drm;         // erkannt kopiergeschützt -> nur Name
+boolean drm   = r.drm;    // detected copy-protected -> name only
 
-// PDF benötigt einmalige Initialisierung (PDFBox-Ressourcen)
+// PDF needs a one-time init (PDFBox resources)
 PdfExtractorHelper.init(context.getApplicationContext());
 int pages = PdfExtractorHelper.pageCount(pdfFile);
 
-// Titelbilder: Ablageordner setzen (dauerhaft: getFilesDir, räumbar: getCacheDir)
+// Thumbnails: pick a storage dir (persistent: getFilesDir, evictable: getCacheDir)
 Thumbnails.setStorageDir(context.getFilesDir());
-Thumbnails.ensure(context, file, ext);          // bei Bedarf erzeugen
+Thumbnails.ensure(context, file, ext);   // generate on demand
 java.io.File thumb = Thumbnails.fileFor(context, file.getAbsolutePath());
 ```
 
-## Einbinden
+## Building it in
 
-Aktuell als **Quell-Modul** gedacht (die Sucher-Apps binden es als
-Git-Submodul ein und kompilieren `src/` mit). Die `libs/` enthalten die
-benötigten Drittanbieter-JARs.
+Currently intended as a **source module** (apps add it as a Git submodule and
+compile `src/`; raw Android SDK build, no Gradle). The `libs/` folder holds the
+required third-party JARs.
 
 ```
-git submodule add https://github.com/8818freak/herbers-android-docextract common-docextract
-# Build: src/ dieses Moduls plus libs/*.jar mitkompilieren; für PDF/Office
-# multidex aktivieren (POI/PDFBox sind groß).
+git submodule add https://github.com/8818freak/herbers-android-docextract docextract
+# Build: compile this module's src/ plus libs/*.jar; enable multidex for
+# PDF/Office (POI/PDFBox are large).
 ```
 
-Voraussetzungen: getestet auf Android 10+ (API 29). Java-8-Sprachfeatures
-(Desugaring). Für PDF/altes Office werden die JARs in `libs/` benötigt.
+Requirements: tested on Android 10+ (API 29). Java 8 language features
+(desugaring). PDF/legacy Office need the JARs in `libs/`.
 
-## Drittanbieter-Bibliotheken (in `libs/`)
+## Third-party libraries (in `libs/`)
 
-Unter jeweils eigener Open-Source-Lizenz, mit (L)GPLv3 kombinierbar:
+Each under its own OSS license, all compatible with (L)GPLv3:
 
 - Apache POI, poi-scratchpad, Apache Commons (Collections, Compress, IO, Math),
-  Apache Log4j API, SparseBitSet, **PDFBox-Android** – alle **Apache License 2.0**
+  Apache Log4j API, SparseBitSet, **PDFBox-Android** – all **Apache License 2.0**
 - curvesapi – **BSD**
 
-Die vollständigen Lizenztexte liegen den jeweiligen JARs bei.
+Full license texts ship with the respective JARs.
 
-## Lizenz
+## License
 
-**GNU Lesser General Public License v3.0 (oder später)** – siehe `LICENSE`.
-Die LGPLv3 baut auf der [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) auf.
-Damit lässt sich diese Bibliothek auch aus nicht-GPL-Apps einbinden; Änderungen
-an der Bibliothek selbst bleiben copyleft.
-
-Copyright © 2026 Mathias Herbers.
+**GNU Lesser General Public License v3.0 (or later)** – see `LICENSE`. The LGPLv3
+builds on the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html). The library can
+be linked from non-GPL apps too, while changes to the library itself stay
+copyleft. Copyright © 2026 Mathias Herbers.
