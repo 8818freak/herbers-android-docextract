@@ -74,6 +74,9 @@ public final class FileExtractors {
                     return ooxml(f, name -> name.equals("xl/sharedStrings.xml") || name.startsWith("xl/worksheets/"), wantContent);
                 case "pptx":
                     return ooxml(f, name -> name.startsWith("ppt/slides/slide"), wantContent);
+                case "odt": case "ods": case "odp": case "odg": case "odf":
+                case "ott": case "ots": case "otp":
+                    return odf(f, wantContent);
                 case "epub":
                     return epub(f, wantContent);
                 case "fb2":
@@ -86,6 +89,12 @@ public final class FileExtractors {
                     return PdfExtractorHelper.extract(f, wantContent);
                 case "cbz": case "cbr":
                     return ComicExtractor.extractMeta(f, extLower);
+                case "zip": case "7z": case "rar": case "tar":
+                case "tgz": case "tbz": case "tbz2": case "txz":
+                case "gz": case "bz2": case "xz":
+                    // Archive: Inhalt (Dokumente darin) nur wenn wantContent -
+                    // der Aufrufer entscheidet, ob das (teuer) gewuenscht ist.
+                    return ArchiveExtractor.extract(f, extLower, wantContent);
                 default:
                     return new Result();
             }
@@ -137,6 +146,34 @@ public final class FileExtractors {
                     if (sb.length() > MAX_CHARS) break;
                 }
                 r.text = cap(sb.toString());
+            }
+        }
+        return r;
+    }
+
+    /** OpenDocument (ODT/ODS/ODP, LibreOffice/OpenOffice): ein ZIP wie OOXML.
+     *  meta.xml traegt dc:title/dc:creator (immer, billig), content.xml den
+     *  eigentlichen Fliesstext (nur wenn gewuenscht). Derselbe XmlPullParser
+     *  wie bei DOCX - kein Apache POI noetig. */
+    private static Result odf(File f, boolean wantContent) throws Exception {
+        Result r = new Result();
+        try (ZipFile zf = new ZipFile(f)) {
+            ZipEntry meta = zf.getEntry("meta.xml");
+            if (meta != null) {
+                try (InputStream in = zf.getInputStream(meta)) {
+                    Set<String> want = new HashSet<>(); want.add("title"); want.add("creator");
+                    Map<String, String> m = tagTexts(in, want);
+                    r.title = emptyToNull(m.get("title"));
+                    r.author = emptyToNull(m.get("creator"));
+                }
+            }
+            if (wantContent) {
+                ZipEntry content = zf.getEntry("content.xml");
+                if (content != null) {
+                    try (InputStream in = zf.getInputStream(content)) {
+                        r.text = xmlText(in, NONE_SKIP);
+                    }
+                }
             }
         }
         return r;
