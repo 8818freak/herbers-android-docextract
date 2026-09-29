@@ -85,7 +85,13 @@ public final class MobiExtractor {
             }
 
             textRecordCount = Math.min(textRecordCount, numRecords - 1);
-            StringBuilder sb = new StringBuilder();
+            // Zeichensatz aus dem MOBI-Kopf (Feld 0x1C, relativ zu record0+16).
+            int textEncoding = 0;
+            if (record0 + 32 <= len) { f.seek(record0 + 28); textEncoding = f.readInt(); } // MOBI-Kopf 0x0C
+            java.nio.charset.Charset cs = mobiCharset(textEncoding);
+            // Bytes sammeln und ERST danach dekodieren (ein UTF-8-Zeichen kann
+            // ueber eine Record-Grenze reichen). Frueher fest Latin-1 -> Mojibake.
+            java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
             for (int rec = 1; rec <= textRecordCount; rec++) {
                 int start = offsets[rec];
                 int end = offsets[rec + 1];
@@ -93,15 +99,14 @@ public final class MobiExtractor {
                 byte[] raw = new byte[end - start];
                 f.seek(start);
                 f.readFully(raw);
-                String piece = (compression == 2) ? decompressPalmDoc(raw)
-                        : new String(raw, StandardCharsets.ISO_8859_1);
-                sb.append(piece);
-                if (sb.length() > FileExtractors.MAX_CHARS) break;
+                byte[] piece = (compression == 2) ? decompressPalmDoc(raw) : raw;
+                body.write(piece, 0, piece.length);
+                if (body.size() > FileExtractors.MAX_CHARS * 4) break;
             }
             // KF8/MOBI-Text enthaelt oft eingebettetes HTML-Markup -
             // grob strippen, damit im Index lesbarer Fliesstext steht statt
             // Tag-Suppe.
-            res.text = FileExtractors.cap(stripTags(sb.toString()));
+            res.text = FileExtractors.cap(stripTags(new String(body.toByteArray(), cs)));
         }
         return res;
     }
@@ -203,32 +208,48 @@ public final class MobiExtractor {
      *  0x80..0xBF -> 2-Byte Rueckverweis (Distanz+Laenge) auf bereits
      *                dekomprimierten Text
      *  0xC0..0xFF -> Leerzeichen + (Byte XOR 0x80) als naechstes Zeichen */
-    private static String decompressPalmDoc(byte[] data) {
-        StringBuilder out = new StringBuilder(data.length * 3);
-        int pos = 0;
+    /** PalmDOC/LZ77 auf BYTES dekomprimieren (NICHT dekodieren) - der Zeichensatz
+     *  wird erst nach dem Zusammensetzen aller Records angewandt, sonst kann ein
+     *  mehrbyte-Zeichen (UTF-8) an einer Record-/Kopiergrenze zerbrechen. */
+    private static byte[] decompressPalmDoc(byte[] data) {
+        byte[] out = new byte[Math.max(16, data.length * 3)];
+        int n = 0, pos = 0;
         while (pos < data.length) {
             int c = data[pos++] & 0xFF;
             if (c >= 1 && c <= 8) {
-                for (int i = 0; i < c && pos < data.length; i++) out.append((char) (data[pos++] & 0xFF));
+                for (int i = 0; i < c && pos < data.length; i++) { out = grow(out, n + 1); out[n++] = data[pos++]; }
             } else if (c <= 0x7F) {
-                out.append((char) c);
+                out = grow(out, n + 1); out[n++] = (byte) c;
             } else if (c >= 0xC0) {
-                out.append(' ');
-                out.append((char) (c ^ 0x80));
-            } else if (pos < data.length) { // 0x80..0xBF
+                out = grow(out, n + 2); out[n++] = (byte) ' '; out[n++] = (byte) (c ^ 0x80);
+            } else if (pos < data.length) { // 0x80..0xBF: Rueckverweis (LZ77)
                 int c2 = data[pos++] & 0xFF;
                 int distance = (((c & 0x3F) << 8) | c2) >> 3;
                 int length = (c2 & 0x07) + 3;
-                int start = out.length() - distance;
-                if (start < 0) continue; // beschaedigter Datensatz - einfach ueberspringen
+                int start = n - distance;
+                if (start < 0) continue; // beschaedigter Datensatz - ueberspringen
                 for (int i = 0; i < length; i++) {
                     int idx = start + i;
-                    if (idx < 0 || idx >= out.length()) break;
-                    out.append(out.charAt(idx));
+                    if (idx < 0 || idx >= n) break; // liest den LIVE-Puffer -> ueberlappende Kopien ok
+                    out = grow(out, n + 1); out[n++] = out[idx];
                 }
             }
         }
-        return out.toString();
+        return java.util.Arrays.copyOf(out, n);
+    }
+
+    private static byte[] grow(byte[] a, int need) {
+        if (need <= a.length) return a;
+        int cap = a.length * 2; if (cap < need) cap = need;
+        return java.util.Arrays.copyOf(a, cap);
+    }
+
+    /** Text-Zeichensatz eines MOBI aus dem Header-Feld (0x1C): 65001 = UTF-8,
+     *  sonst Windows-1252 (MOBI-Standard; ISO-8859-1 als Notrueckfall). */
+    private static java.nio.charset.Charset mobiCharset(int textEncoding) {
+        if (textEncoding == 65001) return StandardCharsets.UTF_8;
+        try { return java.nio.charset.Charset.forName("windows-1252"); }
+        catch (Throwable t) { return StandardCharsets.ISO_8859_1; }
     }
 
     private static String stripTags(String s) {
@@ -429,7 +450,10 @@ public final class MobiExtractor {
             }
 
             textRecordCount = Math.min(textRecordCount, numRecords - 1);
-            StringBuilder sb = new StringBuilder();
+            int textEncoding = 0;
+            if (record0 + 32 <= len) { f.seek(record0 + 28); textEncoding = f.readInt(); } // MOBI-Kopf 0x0C
+            java.nio.charset.Charset cs = mobiCharset(textEncoding);
+            java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
             for (int rec = 1; rec <= textRecordCount; rec++) {
                 int start = offsets[rec];
                 int end = offsets[rec + 1];
@@ -437,12 +461,12 @@ public final class MobiExtractor {
                 byte[] raw = new byte[end - start];
                 f.seek(start);
                 f.readFully(raw);
-                String piece = (compression == 2) ? decompressPalmDoc(raw)
-                        : new String(raw, StandardCharsets.ISO_8859_1);
-                sb.append(piece);
-                if (sb.length() > FileExtractors.MAX_CHARS) break;
+                byte[] piece = (compression == 2) ? decompressPalmDoc(raw) : raw;
+                body.write(piece, 0, piece.length);
+                if (body.size() > FileExtractors.MAX_CHARS * 4) break;
             }
-            pr.html = pr.kf8 ? stripTags(sb.toString()) : sb.toString();
+            String text = new String(body.toByteArray(), cs);
+            pr.html = pr.kf8 ? stripTags(text) : text;
         } catch (Throwable t) {
             android.util.Log.w("EdgeTabSearch", "MOBI-Vorschau fehlgeschlagen: " + file.getName(), t);
         }
