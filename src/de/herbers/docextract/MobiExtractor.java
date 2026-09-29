@@ -392,6 +392,7 @@ public final class MobiExtractor {
     public static final class PreviewResult {
         public boolean drm, kf8, unsupportedCompression;
         public String html; // bei kf8=true: roher Text ohne Tag-Anspruch, kein echtes HTML
+        public byte[] cover; // rohes Titelbild (JPEG/PNG/GIF), falls vorhanden - fuer die Anzeige am Anfang
     }
 
     public static PreviewResult loadPreview(File file) {
@@ -477,6 +478,8 @@ public final class MobiExtractor {
             }
             String text = new String(body.toByteArray(), cs);
             pr.html = pr.kf8 ? stripTags(text) : text;
+            // Titelbild fuer die Anzeige am Anfang der Vorschau mitliefern (best effort).
+            try { pr.cover = coverBytes(file); } catch (Throwable ignored) {}
         } catch (Throwable t) {
             android.util.Log.w("EdgeTabSearch", "MOBI-Vorschau fehlgeschlagen: " + file.getName(), t);
         }
