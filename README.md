@@ -66,9 +66,9 @@ Die vollständigen Lizenztexte liegen den jeweiligen JARs bei.
 
 ## Lizenz
 
-**GNU Lesser General Public License v3.0 (oder später)** – siehe `LICENSE`
-(LGPLv3) und `COPYING` (GPLv3, auf die die LGPLv3 verweist). Damit lässt sich
-diese Bibliothek auch aus nicht-GPL-Apps einbinden; Änderungen an der Bibliothek
-selbst bleiben copyleft.
+**GNU Lesser General Public License v3.0 (oder später)** – siehe `LICENSE`.
+Die LGPLv3 baut auf der [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) auf.
+Damit lässt sich diese Bibliothek auch aus nicht-GPL-Apps einbinden; Änderungen
+an der Bibliothek selbst bleiben copyleft.
 
 Copyright © 2026 Mathias Herbers.
