@@ -44,7 +44,7 @@ import java.util.zip.ZipFile;
  * Groesse begrenzt (MAX_CHARS) - reicht fuer die Suche, verhindert aber dass
  * ein einzelnes Mammut-Dokument Indizierung/Speicher sprengt.
  */
-final class FileExtractors {
+public final class FileExtractors {
 
     private FileExtractors() {}
 
@@ -53,16 +53,16 @@ final class FileExtractors {
     /** Ergebnis einer Extraktion: Text (kann leer sein), Metadaten (koennen
      *  null sein - nicht jedes Format hat sie), + ob eine echte Kopiersperre
      *  erkannt wurde (dann bewusst kein Inhalt versucht). */
-    static final class Result {
-        String text = "";
-        boolean drm = false;
-        String title, author, series;
-        float seriesIndex = 0f;
+    public static final class Result {
+        public String text = "";
+        public boolean drm = false;
+        public String title, author, series;
+        public float seriesIndex = 0f;
         Result() {}
         Result(String t) { text = t; }
     }
 
-    static Result extract(File f, String extLower, boolean wantContent) {
+    public static Result extract(File f, String extLower, boolean wantContent) {
         try {
             switch (extLower) {
                 case "txt": case "md": case "markdown": case "csv": case "log":

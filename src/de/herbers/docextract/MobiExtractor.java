@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
  * echten Geraet noch nicht gegengeprueft - im Zweifel bleibt ein Feld
  * einfach leer statt eine falsche Zeile zu erzeugen.
  */
-final class MobiExtractor {
+public final class MobiExtractor {
 
     private MobiExtractor() {}
 
@@ -337,12 +337,12 @@ final class MobiExtractor {
      *  - werden per EXTH-Typ 121 (KF8-Boundary-Record-Index, nur in
      *  Kombi-Dateien vorhanden) erkannt und bekommen bewusst nur die reine
      *  Textvariante (kf8=true signalisiert das dem Aufrufer). */
-    static final class PreviewResult {
-        boolean drm, kf8, unsupportedCompression;
-        String html; // bei kf8=true: roher Text ohne Tag-Anspruch, kein echtes HTML
+    public static final class PreviewResult {
+        public boolean drm, kf8, unsupportedCompression;
+        public String html; // bei kf8=true: roher Text ohne Tag-Anspruch, kein echtes HTML
     }
 
-    static PreviewResult loadPreview(File file) {
+    public static PreviewResult loadPreview(File file) {
         PreviewResult pr = new PreviewResult();
         try (RandomAccessFile f = new RandomAccessFile(file, "r")) {
             long len = f.length();

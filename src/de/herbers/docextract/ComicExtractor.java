@@ -24,7 +24,7 @@ import java.util.zip.ZipFile;
  *    Namenssuche (Dateiname landet ueber SearchStore.upsert ohnehin immer
  *    im Index, unabhaengig vom Inhalt).
  */
-final class ComicExtractor {
+public final class ComicExtractor {
 
     private ComicExtractor() {}
 
@@ -50,7 +50,7 @@ final class ComicExtractor {
     /** Alle Bildseiten eines CBZ, in Leserichtung sortiert (Dateiname) - fuer
      *  die Titelbild-Miniatur (erste Seite) UND den Seiten-Vorschaubetrachter
      *  (Quick-Look-Blättern, siehe PreviewActivity). */
-    static java.util.List<String> cbzPageNames(File f) {
+    public static java.util.List<String> cbzPageNames(File f) {
         java.util.List<String> out = new java.util.ArrayList<>();
         try (ZipFile zf = new ZipFile(f)) {
             java.util.Enumeration<? extends java.util.zip.ZipEntry> en = zf.entries();
@@ -63,7 +63,7 @@ final class ComicExtractor {
         return out;
     }
 
-    static byte[] cbzEntryBytes(File f, String entryName) {
+    public static byte[] cbzEntryBytes(File f, String entryName) {
         try (ZipFile zf = new ZipFile(f)) {
             java.util.zip.ZipEntry e = zf.getEntry(entryName);
             if (e == null) return null;

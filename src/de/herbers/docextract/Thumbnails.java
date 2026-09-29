@@ -27,7 +27,7 @@ import java.util.zip.ZipFile;
  * (schnell genug fuer eine Bildschirmseite Treffer, unnoetig fuer zehntausende
  * Zeilen auf einmal).
  */
-final class Thumbnails {
+public final class Thumbnails {
 
     private Thumbnails() {}
 
@@ -67,18 +67,18 @@ final class Thumbnails {
     }
 
     /** Die Cache-Datei fuer einen Pfad (existiert ggf. noch nicht). */
-    static File fileFor(Context ctx, String path) {
+    public static File fileFor(Context ctx, String path) {
         return new File(cacheDir(ctx), cacheKey(path) + ".jpg");
     }
 
-    static boolean exists(Context ctx, String path) {
+    public static boolean exists(Context ctx, String path) {
         return fileFor(ctx, path).isFile();
     }
 
     /** Ob fuer dieses Format ueberhaupt ein Titel-/Vorschaubild entstehen kann -
      *  damit der Aufrufer (MainActivity) nicht bei jedem Anzeigen vergeblich
      *  fuer Formate ohne Bild (Musik, Text, ...) zu erzeugen versucht. */
-    static boolean canHaveThumb(String extLower) {
+    public static boolean canHaveThumb(String extLower) {
         if (extLower == null) return false;
         if (isImageExt(extLower)) return true;
         switch (extLower) {
@@ -96,7 +96,7 @@ final class Thumbnails {
      *  wurde ueberhaupt noch nie ein Lauf ueber diesen Ordner gemacht). Laeuft
      *  synchron; der Aufrufer ruft es im Hintergrund auf. Liefert true, wenn
      *  danach ein Bild vorliegt. */
-    static boolean ensure(Context ctx, File src, String extLower) {
+    public static boolean ensure(Context ctx, File src, String extLower) {
         if (exists(ctx, src.getAbsolutePath())) return true;
         if (src == null || !src.isFile()) return false;
         if ("pdf".equals(extLower)) {

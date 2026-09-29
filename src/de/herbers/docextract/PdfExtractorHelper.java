@@ -14,12 +14,12 @@ import java.io.File;
  *  Schriftart-/Kodierungs-Ressourcen liegen im Projekt-Ordner assets/).
  *  Titel/Autor aus PDDocumentInformation - fast kostenlos, steht direkt im
  *  Dokument-Kopf, keine Seiten muessen dafuer gerendert werden. */
-final class PdfExtractorHelper {
+public final class PdfExtractorHelper {
 
     private PdfExtractorHelper() {}
     private static volatile boolean inited = false;
 
-    static void init(Context ctx) {
+    public static void init(Context ctx) {
         if (!inited) {
             synchronized (PdfExtractorHelper.class) {
                 if (!inited) {
@@ -71,7 +71,7 @@ final class PdfExtractorHelper {
     }
 
     /** Seitenzahl, fuer den Blätter-Betrachter (PreviewActivity). */
-    static int pageCount(File f) {
+    public static int pageCount(File f) {
         try (PDDocument doc = PDDocument.load(f)) {
             return doc.isEncrypted() ? 0 : doc.getNumberOfPages();
         } catch (Throwable t) {
@@ -84,7 +84,7 @@ final class PdfExtractorHelper {
      *  Seiten hinweg offen zu halten) - fuer normal grosse PDFs schnell genug,
      *  einfacher/robuster als ein zustandsbehaftetes Objekt in der Activity
      *  am Leben zu halten. */
-    static android.graphics.Bitmap renderPage(File f, int pageIndex, float scale) {
+    public static android.graphics.Bitmap renderPage(File f, int pageIndex, float scale) {
         try (PDDocument doc = PDDocument.load(f)) {
             if (doc.isEncrypted() || pageIndex < 0 || pageIndex >= doc.getNumberOfPages()) return null;
             return new PDFRenderer(doc).renderImage(pageIndex, scale);
