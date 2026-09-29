@@ -89,7 +89,7 @@ public final class FileExtractors {
                     return PdfExtractorHelper.extract(f, wantContent);
                 case "cbz": case "cbr":
                     return ComicExtractor.extractMeta(f, extLower);
-                case "zip": case "7z": case "rar": case "tar":
+                case "zip": case "7z": case "tar":
                 case "tgz": case "tbz": case "tbz2": case "txz":
                 case "gz": case "bz2": case "xz":
                     // Archive: Inhalt (Dokumente darin) nur wenn wantContent -

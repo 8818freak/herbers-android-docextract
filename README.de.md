@@ -13,7 +13,8 @@ App **[Sucher](https://github.com/8818freak/Sucher)**.
 
 | Klasse | Zweck |
 |---|---|
-| `FileExtractors` | Einstiegspunkt: Text + Metadaten (Titel/Autor/Serie) aus TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, PDF, CBZ (ComicInfo.xml). Liefert `FileExtractors.Result`. |
+| `FileExtractors` | Einstiegspunkt: Text + Metadaten (Titel/Autor/Serie) aus TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, **ODT/ODS/ODP** (OpenDocument), PDF, CBZ (ComicInfo.xml) und Archiven (siehe `ArchiveExtractor`). Liefert `FileExtractors.Result`. |
+| `ArchiveExtractor` | Archive (ZIP/7z/TAR inkl. `.gz`/`.bz2`/`.xz`, einzeln komprimierte `.gz`/`.bz2`/`.xz`). Macht ein Archiv **über seinen Inhalt** auffindbar: sein Volltext ist der zusammengesetzte Text der enthaltenen Dokumente (jeder Eintrag wird entpackt und durch `FileExtractors` gejagt). Ein Index-Eintrag je Archiv; verschachtelte Archive werden nicht rekursiv ausgepackt (Bombenschutz); Eintragszahl/-größe gedeckelt. RAR nur dem Namen nach (es gibt keinen freien, GPL-kompatiblen RAR-Entpacker; zum Durchsuchen als ZIP/7z neu packen). |
 | `MobiExtractor` | MOBI/AZW/AZW3/PRC: Text, Metadaten, Cover, HTML-Vorschau (PalmDOC/MOBI6-Dekompression, KF8-Erkennung). |
 | `ComicExtractor` | CBZ: Seitennamen, Seiten-Bytes, Cover, ComicInfo.xml. |
 | `PdfExtractorHelper` | PDF (PDFBox-Android): Text, Seitenzahl, Seite rendern, Cover-Bitmap. Vor Gebrauch `init(context)` aufrufen. |
@@ -64,6 +65,7 @@ Open-Source-Lizenz, alle mit (L)GPLv3 kombinierbar:
 - Apache POI, poi-scratchpad, Apache Commons (Collections, Compress, IO, Math),
   Apache Log4j API, SparseBitSet, **PdfBox-Android** – alle **Apache License 2.0**
 - curvesapi – **BSD-3-Clause**
+- **XZ for Java** (`.xz`/`.tar.xz`) – **Public Domain (0BSD)**
 
 Versionen, Links und die geforderten Hinweise stehen in
 **[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**; die vollständigen

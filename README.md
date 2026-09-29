@@ -13,7 +13,8 @@ app **[Sucher](https://github.com/8818freak/Sucher)**.
 
 | Class | Purpose |
 |---|---|
-| `FileExtractors` | Entry point: text + metadata (title/author/series) from TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, PDF, CBZ (ComicInfo.xml). Returns `FileExtractors.Result`. |
+| `FileExtractors` | Entry point: text + metadata (title/author/series) from TXT/MD/CSV/HTML/XML, EPUB, FB2, DOCX/XLSX/PPTX, DOC/XLS/PPT, **ODT/ODS/ODP** (OpenDocument), PDF, CBZ (ComicInfo.xml), and archives (see `ArchiveExtractor`). Returns `FileExtractors.Result`. |
+| `ArchiveExtractor` | Archives (ZIP/7z/TAR incl. `.gz`/`.bz2`/`.xz`, single-file `.gz`/`.bz2`/`.xz`). Makes an archive searchable **by its contents**: its full text is the concatenated text of the documents inside (each entry unpacked and run through `FileExtractors`). One index entry per archive; nested archives are not recursed (bomb guard); entry count/size capped. RAR is name-only (no free, GPL-compatible RAR decompressor exists; repack as ZIP/7z to search RAR contents). |
 | `MobiExtractor` | MOBI/AZW/AZW3/PRC: text, metadata, cover, HTML preview (PalmDOC/MOBI6 decompression, KF8 detection). |
 | `ComicExtractor` | CBZ: page names, page bytes, cover, ComicInfo.xml. |
 | `PdfExtractorHelper` | PDF (PDFBox-Android): text, page count, render page, cover bitmap. Call `init(context)` before use. |
@@ -64,6 +65,7 @@ all compatible with (L)GPLv3:
 - Apache POI, poi-scratchpad, Apache Commons (Collections, Compress, IO, Math),
   Apache Log4j API, SparseBitSet, **PdfBox-Android** – all **Apache License 2.0**
 - curvesapi – **BSD-3-Clause**
+- **XZ for Java** (`.xz`/`.tar.xz`) – **Public Domain (0BSD)**
 
 Versions, links and the required notices are in
 **[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)**; the full license texts also

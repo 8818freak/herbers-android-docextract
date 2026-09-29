@@ -8,9 +8,6 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
-import com.github.junrar.Archive;
-import com.github.junrar.rarfile.FileHeader;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,9 +25,11 @@ import java.util.zip.ZipFile;
  * das Index-Schema (ein Eintrag je Datei) zu sprengen - eine Trefferzeile je
  * Archiv, kein Aufblaehen auf tausende Pseudo-Dateien.
  *
- * <p>Bewusst KEIN RAR: dafuer gibt es keinen mitgelieferten freien Entpacker
- * (Commons Compress liest nur unkomprimierte RAR-Eintraege) - RAR bleibt beim
- * reinen Namens-Eintrag.
+ * <p>Bewusst KEIN RAR: es gibt keinen freien, GPL-kompatiblen RAR-Entpacker
+ * (der einzige vollstaendige ist Roshals unrar-Quelle unter der restriktiven
+ * UnRar-Lizenz; junrar erbt diese und kann zudem nur RAR4). RAR bleibt beim
+ * reinen Namens-Eintrag - wer RAR-Inhalte durchsuchen will, packt einmal als
+ * ZIP oder 7z um.
  *
  * <p>Teuer (jeder Eintrag wird entpackt, in eine temporaere Datei geschrieben
  * und einzeln durch {@link FileExtractors} gejagt) - laeuft nur, wenn der
@@ -77,8 +76,6 @@ public final class ArchiveExtractor {
                 readZip(file, body);
             } else if ("7z".equals(ext)) {
                 readSevenZ(file, body);
-            } else if ("rar".equals(ext)) {
-                readRar(file, body);
             } else if ("tar".equals(ext)) {
                 readTar(new BufferedInputStream(new FileInputStream(file)), body);
             } else if ("tgz".equals(ext) || name.endsWith(".tar.gz")) {
@@ -140,28 +137,6 @@ public final class ArchiveExtractor {
                 // 7z liefert den aktuellen Eintrag ueber sz.read(...) - ein
                 // nicht-schliessender Wrapper reicht ihn an FileExtractors durch.
                 indexOne(new SevenZEntryStream(sz), inner, body);
-            }
-        }
-    }
-
-    // ---- RAR (junrar; RAR4 voll, RAR5 in neueren Versionen) ----
-    private static void readRar(File file, StringBuilder body) throws Exception {
-        try (Archive archive = new Archive(file)) {
-            FileHeader e;
-            int count = 0;
-            while ((e = archive.nextFileHeader()) != null) {
-                if (body.length() > FileExtractors.MAX_CHARS || count >= MAX_ENTRIES) break;
-                if (e.isDirectory()) continue;
-                count++;
-                if (e.getFullUnpackSize() > MAX_ENTRY_BYTES) continue;
-                String entryName = e.getFileName();
-                if (entryName == null || entryName.isEmpty()) entryName = e.getFileNameString();
-                String inner = innerExt(entryName);
-                appendEntryName(body, entryName);
-                if (!indexableInner(inner)) continue;
-                try (InputStream in = archive.getInputStream(e)) {
-                    indexOne(in, inner, body);
-                }
             }
         }
     }

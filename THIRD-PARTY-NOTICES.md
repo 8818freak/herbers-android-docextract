@@ -20,6 +20,7 @@ der LGPLv3 dieses Projekts kombinierbar.
 | SparseBitSet | 1.3 | Apache-2.0 | https://github.com/brettwooldridge/SparseBitSet |
 | PdfBox-Android | 2.0.27.0 | Apache-2.0 | https://github.com/TomRoush/PdfBox-Android |
 | curvesapi | 1.08 | BSD-3-Clause | https://github.com/virtuald/curvesapi |
+| XZ for Java | 1.9 | Public Domain (0BSD) | https://tukaani.org/xz/java.html |
 
 ## Apache License 2.0
 
@@ -41,6 +42,12 @@ Copyright (c) 2005–2015, Graph Builder. All rights reserved. Redistribution an
 use in source and binary forms, with or without modification, are permitted
 provided that the BSD-3-Clause conditions are met. See
 <https://github.com/virtuald/curvesapi> for the full license text.
+
+## Public Domain / 0BSD (XZ for Java)
+
+XZ for Java (`.xz`/`.tar.xz` support) has been put into the **public domain** by
+its authors (0BSD). No warranty. See <https://tukaani.org/xz/java.html>.
+
 
 ---
 
