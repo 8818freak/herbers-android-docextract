@@ -68,7 +68,7 @@ public final class MobiExtractor {
             f.skipBytes(2);
             f.skipBytes(4); // textLength (unkomprimierte Gesamtlaenge) - hier nicht gebraucht
             int textRecordCount = f.readUnsignedShort();
-            f.skipBytes(2); // recordSize (idR 4096)
+            int recordSize = f.readUnsignedShort(); // unkomprimierte Groesse je Record (idR 4096)
             int encryptionType = f.readUnsignedShort();
 
             if (encryptionType != 0) {
@@ -100,6 +100,11 @@ public final class MobiExtractor {
                 f.seek(start);
                 f.readFully(raw);
                 byte[] piece = (compression == 2) ? decompressPalmDoc(raw) : raw;
+                // Ein Record dekomprimiert zu genau recordSize Bytes; ein letzter
+                // Opcode, der ueber die Grenze schreibt, haengt sonst Muell ans
+                // Record-Ende (an echter Datei bestaetigt: "Neigung" wurde zu
+                // "Neig" + Muell + "ung" ueber die Record-Grenze). Auf recordSize kappen.
+                if (recordSize > 0 && piece.length > recordSize) piece = java.util.Arrays.copyOf(piece, recordSize);
                 body.write(piece, 0, piece.length);
                 if (body.size() > FileExtractors.MAX_CHARS * 4) break;
             }
@@ -408,7 +413,7 @@ public final class MobiExtractor {
             f.skipBytes(2);
             f.skipBytes(4);
             int textRecordCount = f.readUnsignedShort();
-            f.skipBytes(2);
+            int recordSize = f.readUnsignedShort();
             int encryptionType = f.readUnsignedShort();
             if (encryptionType != 0) { pr.drm = true; return pr; }
             if (compression != 1 && compression != 2) { pr.unsupportedCompression = true; return pr; }
@@ -462,6 +467,11 @@ public final class MobiExtractor {
                 f.seek(start);
                 f.readFully(raw);
                 byte[] piece = (compression == 2) ? decompressPalmDoc(raw) : raw;
+                // Ein Record dekomprimiert zu genau recordSize Bytes; ein letzter
+                // Opcode, der ueber die Grenze schreibt, haengt sonst Muell ans
+                // Record-Ende (an echter Datei bestaetigt: "Neigung" wurde zu
+                // "Neig" + Muell + "ung" ueber die Record-Grenze). Auf recordSize kappen.
+                if (recordSize > 0 && piece.length > recordSize) piece = java.util.Arrays.copyOf(piece, recordSize);
                 body.write(piece, 0, piece.length);
                 if (body.size() > FileExtractors.MAX_CHARS * 4) break;
             }
