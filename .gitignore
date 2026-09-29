@@ -1,0 +1,4 @@
+build/
+err.txt
+*.class
+.DS_Store
