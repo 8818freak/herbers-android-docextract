@@ -138,7 +138,11 @@ public final class Thumbnails {
         }
     }
 
-    private static boolean isImageExt(String ext) {
+    /** Ist die Endung ein reines Bildformat? Reine Bilder SIND ihr eigenes
+     *  Titelbild und werden beim Anzeigen ohnehin sofort dargestellt - das
+     *  Vorwaermen (thumbPass) darf sie daher ueberspringen und sein Kontingent
+     *  fuer teure Titelbilder (Buch-Cover, PDF, Office) aufheben. */
+    public static boolean isImageExt(String ext) {
         switch (ext) {
             case "jpg": case "jpeg": case "png": case "gif": case "webp": case "bmp":
                 return true;
