@@ -110,12 +110,20 @@ public final class FileExtractors {
     }
 
     private static String readPlain(File f) throws Exception {
-        byte[] buf = new byte[Math.min((int) f.length(), MAX_CHARS * 2)];
+        int limit = (int) Math.min(f.length(), (long) MAX_CHARS * 2);
+        byte[] buf = new byte[limit];
+        int total = 0;
+        // Bis der Puffer voll ist oder EOF: read() darf laut Vertrag weniger
+        // liefern als angefragt, auch wenn mehr Daten da sind - ein einzelner
+        // read() koennte den Text sonst still abschneiden (wie readAll() unten).
         try (FileInputStream in = new FileInputStream(f)) {
-            int n = in.read(buf);
-            if (n < 0) return "";
-            return cap(new String(buf, 0, n, StandardCharsets.UTF_8));
+            int n;
+            while (total < buf.length && (n = in.read(buf, total, buf.length - total)) >= 0) {
+                total += n;
+            }
         }
+        if (total <= 0) return "";
+        return cap(new String(buf, 0, total, StandardCharsets.UTF_8));
     }
 
     interface EntryFilter { boolean matches(String name); }
